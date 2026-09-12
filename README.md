@@ -37,6 +37,33 @@ brightness only (see limitation 3).
 
 ---
 
+## Screenshots
+
+Rendered from the app's own views with placeholder data, on a plain background
+with the camera housing drawn in black — so the seam between slab and housing is
+the real thing, not a mock-up.
+
+**Resting.** Exactly as tall as the housing and only a little wider, so it reads
+as the notch itself. Artwork on one side, a playback pulse on the other.
+
+![Aperture at rest, the size of the notch](Docs/screenshots/01-resting.png)
+
+**Live activity.** Widens into a strip when something is playing.
+
+![Aperture showing a track in its activity strip](Docs/screenshots/02-activity.png)
+
+**The hub.** Springs open on click, shortcut or menu — transport, timeline and
+output device.
+
+![Aperture's hub, open on Now Playing](Docs/screenshots/03-hub.png)
+
+**Volume and brightness.** The readout that replaces macOS's own panel: the name
+on one side of the housing, the level on the other.
+
+![Aperture's brightness readout straddling the notch](Docs/screenshots/04-brightness.png)
+
+---
+
 ## Install
 
 No notarised build is distributed, so build it yourself. Requires Xcode (see
