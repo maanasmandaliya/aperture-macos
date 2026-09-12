@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Aperture ships unsandboxed. The App Sandbox blocks AppleScript control
+	     of Music and the IOKit display queries unless matching temporary
+	     exceptions are added, and both are user-visible features here. See
+	     README.md ▸ "Sandboxing" for the entitlements to add if you sandbox it. -->
+	<key>com.apple.security.app-sandbox</key>
+	<false/>
+	<!-- Required for the optional Apple Music source. macOS still prompts the
+	     user for Automation permission the first time it is used. -->
+	<key>com.apple.security.automation.apple-events</key>
+	<true/>
+	<!-- Required to be *asked* about the calendar at all under the hardened
+	     runtime. Without it `tccd` refuses to raise the panel and
+	     `requestFullAccessToEvents` returns false in ~30 ms with the status
+	     still "not determined" — no error, no prompt, nothing to see:
+
+	         Prompting policy for hardened runtime; service: kTCCServiceCalendar
+	         requires entitlement com.apple.security.personal-information.calendars
+	         but it is missing
+
+	     It reads like a sandbox key but is enforced for hardened-runtime apps
+	     too, which is why this only started mattering once the app was signed
+	     with a real identity and hardened. It grants nothing on its own; the
+	     user still answers the prompt. -->
+	<key>com.apple.security.personal-information.calendars</key>
+	<true/>
+</dict>
+</plist>

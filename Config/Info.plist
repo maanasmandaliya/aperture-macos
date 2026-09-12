@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Used only by Scripts/build.sh. An Xcode build generates its own
+	     Info.plist from the INFOPLIST_KEY_* build settings; keep the two in
+	     sync if you change either. -->
+	<key>CFBundleDevelopmentRegion</key><string>en</string>
+	<key>CFBundleDisplayName</key><string>Aperture</string>
+	<key>CFBundleExecutable</key><string>Aperture</string>
+	<key>CFBundleIdentifier</key><string>com.aperture.Aperture</string>
+	<key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
+	<key>CFBundleName</key><string>Aperture</string>
+	<key>CFBundlePackageType</key><string>APPL</string>
+	<key>CFBundleShortVersionString</key><string>1.0</string>
+	<key>CFBundleVersion</key><string>1</string>
+	<key>LSApplicationCategoryType</key><string>public.app-category.utilities</string>
+	<key>LSMinimumSystemVersion</key><string>15.0</string>
+	<!-- Agent app: no Dock tile, no menu bar of its own. -->
+	<key>LSUIElement</key><true/>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Aperture uses AppleScript to read and control playback in the Music app. This is optional and only used when you pick Apple Music as the media source.</string>
+	<key>NSCalendarsFullAccessUsageDescription</key>
+	<string>Aperture shows your next few events on the overlay. Events are read on this Mac and never leave it.</string>
+	<key>NSFocusStatusUsageDescription</key>
+	<string>Aperture shows whether a Focus is active in the Controls tab.</string>
+	<key>NSHighResolutionCapable</key><true/>
+	<key>NSSupportsAutomaticTermination</key><false/>
+	<key>NSSupportsSuddenTermination</key><false/>
+</dict>
+</plist>
