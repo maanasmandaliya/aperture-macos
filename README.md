@@ -71,8 +71,32 @@ on one side of the housing, the level on the other.
 
 ## Install
 
-No notarised build is distributed, so build it yourself. Requires Xcode (see
-*Requirements*).
+### Download
+
+**[Aperture 1.0.0 — Apple Silicon](https://github.com/maanasmandaliya/aperture-macos/releases/latest)**
+(`Aperture-1.0.0-arm64.zip`). Unzip it, move `Aperture.app` to Applications,
+then **right-click it and choose Open** the first time.
+
+That first step is not optional and not a bug: the build is ad-hoc signed and
+not notarised, so Gatekeeper refuses a plain double-click and offers no button
+to continue. Right-click ▸ Open is the supported way past it, and it is needed
+once. If macOS still refuses, clear the quarantine flag the download added:
+
+```bash
+xattr -d com.apple.quarantine /Applications/Aperture.app
+```
+
+An ad-hoc signature is a hash of the binary rather than a certificate, so macOS
+cannot tie it to a developer — and because permissions are keyed to the
+signature, replacing this build with a newer download means granting
+Accessibility and Input Monitoring again.
+
+Intel Macs are not covered by that download. Build from source instead, which
+targets whichever architecture it runs on.
+
+### Build from source
+
+Requires Xcode (see *Requirements*).
 
 ```bash
 git clone https://github.com/maanasmandaliya/aperture-macos.git
