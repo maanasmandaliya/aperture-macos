@@ -41,7 +41,8 @@ brightness only (see limitation 3).
 
 Rendered from the app's own views with placeholder data, on a plain background
 with the camera housing drawn in black — so the seam between slab and housing is
-the real thing, not a mock-up.
+the real thing, not a mock-up. `./Scripts/screenshots.sh` regenerates them, and
+does so identically every run, so a UI change shows up as a clean diff.
 
 **Resting.** Exactly as tall as the housing and only a little wider, so it reads
 as the notch itself. Artwork on one side, a playback pulse on the other.
@@ -138,9 +139,9 @@ xcodebuild -project Aperture.xcodeproj -scheme Aperture test
 
 ### Without Xcode's build system
 
-Two scripts build and test the exact same sources using only the Swift compiler.
-They are useful when Xcode's system components are not installed, and they are
-what the project was verified with:
+Three scripts build, test and illustrate the project using only the Swift
+compiler. They are useful when Xcode's system components are not installed, and
+they are what the project was verified with:
 
 ```bash
 ./Scripts/build.sh                         # produces .build/Aperture.app
@@ -148,6 +149,10 @@ what the project was verified with:
 
 ```bash
 ./Scripts/test.sh                          # builds and runs the XCTest bundle
+```
+
+```bash
+./Scripts/screenshots.sh                   # re-renders Docs/screenshots
 ```
 
 `build.sh release` builds an optimised binary. Both scripts sign with a real
