@@ -2,6 +2,8 @@
 
 A quiet status hub for the top of your display.
 
+![Aperture resting, widening for a track, opening into the hub, then showing a brightness readout](Docs/screenshots/demo.gif)
+
 Aperture turns the top-centre strip of a Mac screen into a small, restrained
 overlay: a black slab that appears to grow out of the camera housing, widens
 into a live-activity strip when something is happening, and springs open into a
@@ -42,7 +44,9 @@ brightness only (see limitation 3).
 Rendered from the app's own views with placeholder data, on a plain background
 with the camera housing drawn in black — so the seam between slab and housing is
 the real thing, not a mock-up. `./Scripts/screenshots.sh` regenerates them, and
-does so identically every run, so a UI change shows up as a clean diff.
+does so identically every run, so a UI change shows up as a clean diff. The GIF
+at the top is recorded the same way by `./Scripts/demo.sh` — real captured
+frames of the app's own views, moved by the app's own springs.
 
 **Resting.** Exactly as tall as the housing and only a little wider, so it reads
 as the notch itself. Artwork on one side, a playback pulse on the other.
@@ -139,7 +143,7 @@ xcodebuild -project Aperture.xcodeproj -scheme Aperture test
 
 ### Without Xcode's build system
 
-Three scripts build, test and illustrate the project using only the Swift
+Four scripts build, test and illustrate the project using only the Swift
 compiler. They are useful when Xcode's system components are not installed, and
 they are what the project was verified with:
 
@@ -153,6 +157,10 @@ they are what the project was verified with:
 
 ```bash
 ./Scripts/screenshots.sh                   # re-renders Docs/screenshots
+```
+
+```bash
+./Scripts/demo.sh                          # re-records Docs/screenshots/demo.gif
 ```
 
 `build.sh release` builds an optimised binary. Both scripts sign with a real
