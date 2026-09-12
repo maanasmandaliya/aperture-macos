@@ -2,6 +2,8 @@
 
 A quiet status hub for the top of your display.
 
+[![Total downloads](https://img.shields.io/github/downloads/maanasmandaliya/aperture-macos/total?color=555&label=downloads)](https://github.com/maanasmandaliya/aperture-macos/releases/latest)
+
 ![Aperture resting, widening for a track, opening into the hub, then showing a brightness readout](Docs/screenshots/demo.gif)
 
 Aperture turns the top-centre strip of a Mac screen into a small, restrained
