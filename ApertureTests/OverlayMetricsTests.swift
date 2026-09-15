@@ -71,11 +71,14 @@ final class OverlayMetricsTests: XCTestCase {
         let nowPlaying = notched.hubSize(for: .nowPlaying)
         let schedule = notched.hubSize(for: .schedule)
         let controls = notched.hubSize(for: .controls)
+        let mirror = notched.hubSize(for: .mirror)
 
         XCTAssertLessThan(nowPlaying.height, schedule.height)
         XCTAssertLessThan(schedule.height, controls.height)
+        XCTAssertLessThan(controls.height, mirror.height, "A mirror is only useful if the preview is big enough")
         XCTAssertEqual(nowPlaying.width, schedule.width, accuracy: 0.001)
         XCTAssertEqual(schedule.width, controls.width, accuracy: 0.001)
+        XCTAssertEqual(controls.width, mirror.width, accuracy: 0.001)
     }
 
     func testNowPlayingHubIsWiderThanItIsTall() {
@@ -89,6 +92,8 @@ final class OverlayMetricsTests: XCTestCase {
                        notched.hubSize(for: .schedule))
         XCTAssertEqual(notched.slabSize(for: .expanded(.controls), isHovering: false),
                        notched.hubSize(for: .controls))
+        XCTAssertEqual(notched.slabSize(for: .expanded(.mirror), isHovering: false),
+                       notched.hubSize(for: .mirror))
     }
 
     func testExpandedSizeIsNeverTheNowPlayingHeightForOtherPanes() {

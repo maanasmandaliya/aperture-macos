@@ -19,6 +19,13 @@ struct HotKeyBinding: Codable, Equatable, Sendable {
         modifiers: UInt32(cmdKey | shiftKey)
     )
 
+    /// ⌃⌥⌘M. Deliberately not ⌘⇧M, which apps such as Slack use: a global
+    /// shortcut takes its combination away from every app on the Mac.
+    static let mirrorDefault = HotKeyBinding(
+        keyCode: UInt32(kVK_ANSI_M),
+        modifiers: UInt32(controlKey | optionKey | cmdKey)
+    )
+
     var isValid: Bool { modifiers != 0 }
 
     /// `⌘⇧Space`-style label for menus and Settings.

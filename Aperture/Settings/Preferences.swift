@@ -118,6 +118,11 @@ final class Preferences {
     var reduceMotionOverride: Bool { didSet { persist(reduceMotionOverride, PreferenceKey.reduceMotion) } }
     var increaseContrastOverride: Bool { didSet { persist(increaseContrastOverride, PreferenceKey.increaseContrast) } }
     var hotKey: HotKeyBinding { didSet { persistJSON(hotKey, PreferenceKey.hotKey) } }
+    var mirrorHotKey: HotKeyBinding { didSet { persistJSON(mirrorHotKey, PreferenceKey.mirrorHotKey) } }
+
+    /// Mirrored, as a mirror is. Off shows the unflipped view other people see.
+    var mirrorFlipped: Bool { didSet { persist(mirrorFlipped, PreferenceKey.mirrorFlipped) } }
+    var mirrorRingLight: Bool { didSet { persist(mirrorRingLight, PreferenceKey.mirrorRingLight) } }
 
     // MARK: Media
 
@@ -162,6 +167,10 @@ final class Preferences {
         reduceMotionOverride = store.bool(PreferenceKey.reduceMotion, default: false)
         increaseContrastOverride = store.bool(PreferenceKey.increaseContrast, default: false)
         hotKey = store.decodeJSON(PreferenceKey.hotKey, as: HotKeyBinding.self, default: .default)
+        mirrorHotKey = store.decodeJSON(PreferenceKey.mirrorHotKey, as: HotKeyBinding.self, default: .mirrorDefault)
+
+        mirrorFlipped = store.bool(PreferenceKey.mirrorFlipped, default: true)
+        mirrorRingLight = store.bool(PreferenceKey.mirrorRingLight, default: false)
 
         mediaSource = store.decode(PreferenceKey.mediaSource, default: MediaSourceChoice.demo)
 

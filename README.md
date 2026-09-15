@@ -96,6 +96,9 @@ Accessibility and Input Monitoring again.
 Intel Macs are not covered by that download. Build from source instead, which
 targets whichever architecture it runs on.
 
+The **Mirror** pane is newer than 1.0.0 and is not in that download yet. Build
+from source to get it.
+
 ### Build from source
 
 Requires Xcode (see *Requirements*).
@@ -117,13 +120,14 @@ The Xcode project sets no development team, so Xcode signs with yours
 automatically; the scripts pick up any codesigning identity on the machine and
 sign ad-hoc if there is none.
 
-Nothing is required to see the overlay, the clock, or the hub. Two features ask
-for permission the first time you use them, and both fail inert if you decline:
+Nothing is required to see the overlay, the clock, or the hub. Some features ask
+for permission the first time you use them, and each fails inert if you decline:
 
 | Permission | Needed for | Where |
 |---|---|---|
 | Accessibility **and** Input Monitoring | *Show only Aperture's volume and brightness readout* — consuming the volume and brightness keys so macOS's own panel stays hidden | System Settings ▸ Privacy & Security |
 | Calendar | the next event in the hub | System Settings ▸ Privacy & Security |
+| Camera | the Mirror pane | asked by macOS when you press *Allow Camera* |
 | Automation (per app) | reading what Music, Spotify, Safari, Chrome or Brave is playing | asked by macOS on first use |
 
 ---
@@ -201,6 +205,7 @@ to be granted again. A stable identity makes the grants persist.
 Aperture has no Dock icon. Look for the dotted-circle glyph in the menu bar —
 that menu has **Toggle Hub**, **Pause Aperture**, **Settings…** and **Quit**.
 Press **⌘⇧Space** (configurable) to open the hub, or click the pill.
+**⌃⌥⌘M** (also configurable) opens it straight to the Mirror, and closes it again.
 
 ---
 
@@ -215,10 +220,12 @@ clearly-labelled disabled state if you decline.
 | **Calendars** (full access) | The first time you enable *Show calendar events* in Settings ▸ Calendar | The Schedule tab explains the state and offers a button to open the Privacy pane |
 | **Automation → Music** | The first time the media source is set to *Apple Music* and Aperture reads a track | Now Playing shows a "permission needed" state; the demo source keeps working |
 | **Focus status** | The first time you press *Allow* on the Focus row in the Controls tab | The Focus row reads "Permission needed" and stays non-interactive |
+| **Camera** | When you press *Allow Camera* in the Mirror pane — never when you merely page past it | The pane explains the state and offers a button to open the Privacy pane |
 | **Login item** | When you switch on *Launch at login* | Settings shows the real `SMAppService` status, including "awaiting approval" |
 
-Aperture does **not** request Accessibility, Input Monitoring, Screen Recording
-or Full Disk Access, and does not work without them.
+Aperture never requests Screen Recording, Microphone or Full Disk Access. It asks
+for Accessibility and Input Monitoring only if you turn on *Show only Aperture's
+volume and brightness readout*, and everything else works without them.
 
 See [Privacy.md](Privacy.md) for what is read, stored and sent.
 
@@ -236,6 +243,7 @@ more than macOS actually permits from a public-API app.
 | Overlay windowing, notch measurement | `NSPanel`, `NSScreen.safeAreaInsets`, `auxiliaryTopLeftArea` / `auxiliaryTopRightArea` (measured 185 pt on a 14-inch MacBook Pro) |
 | Multi-display, display changes, Spaces | `NSApplication.didChangeScreenParametersNotification`, `NSWorkspace.activeSpaceDidChangeNotification`, collection behaviours |
 | Calendar events | EventKit (`EKEventStore.requestFullAccessToEvents`, `EKEventStoreChanged`) |
+| Camera mirror and photos | AVFoundation: `AVCaptureSession`, `AVCaptureVideoPreviewLayer`, `AVCapturePhotoOutput`; photos saved to Pictures ▸ Aperture |
 | Output volume and mute — read *and* write | CoreAudio HAL properties, with change listeners (no polling) |
 | Global keyboard shortcut | Carbon `RegisterEventHotKey` (needs no permission) |
 | Launch at login | `SMAppService.mainApp` |
@@ -475,6 +483,16 @@ notch utilities do, and how Aperture handles each.
    the microphone, which is a far worse trade. The check is refused, no panel
    appears, and output volume works regardless.
 
+   The Mirror pane's camera needs the same treatment:
+   `com.apple.security.device.camera`, alongside `NSCameraUsageDescription`.
+   There is one more trap, on the Xcode side. An Xcode build generates its
+   Info.plist from `INFOPLIST_KEY_*` build settings, and a setting for a key
+   Xcode does not recognise is dropped without a warning.
+   `NSCameraReactionEffectGesturesEnabledDefault` went missing exactly that way —
+   found by building with Xcode and reading the result — which is why
+   `Config/InfoAdditions.plist` exists: Xcode merges it into the file it
+   generates.
+
 8. **Call state is unavailable.** No public API reports that the user is on a
    call, in FaceTime or anywhere else.
 
@@ -498,6 +516,36 @@ notch utilities do, and how Aperture handles each.
    After a rebuild the Schedule pane simply explains that access is needed and
    offers the button. Signing with any real certificate makes the grant persist
    across rebuilds and the whole issue disappears.
+
+11. **A camera takes about a second to start, and that wait must not freeze the
+   UI.** `AVCaptureSession.startRunning()` blocks for 1.2–1.5 s on a MacBook Pro's
+   FaceTime HD camera while the sensor powers up; FaceTime waits on it too. It
+   runs on the capture queue, but that alone was not enough. With the Mirror
+   pane building its own connected preview layer on the main thread, a reopen
+   was measured freezing the main thread for 1.7 s — the whole of
+   `startRunning`. The pipeline now owns a single preview layer, made without a
+   connection and joined to the camera on its own queue, and the freeze is gone:
+   first frame in about 1.3 s on a reopen, no main-thread stall over 50 ms. The
+   camera is also found and wired as soon as the hub opens, which saves about
+   200 ms without switching it on. Keeping the session running after the pane
+   closes would remove the rest of the wait, but it would leave the camera light
+   on behind the user's back, so Aperture does not.
+
+   Some of the cost belongs to macOS. With every video effect off, the camera
+   stack still runs its own machine-learning work (Espresso, Vision) inside the
+   app — a CPU spike of about a second as frames start, then roughly 18% while
+   the mirror is open — and no public API turns it off. Gesture-triggered
+   Reactions are off by default, but for behaviour rather than speed: raising
+   your hands in a mirror should not set off fireworks.
+
+12. **A hub pane cannot receive a trackpad pinch.** Trackpad gestures are
+   delivered to the *active* app, not to the window under the pointer. Measured:
+   a pinch over the Mirror pane produced 2,627 gesture events, every one of them
+   sent to the frontmost app and none to Aperture, whose panels never activate.
+   That is why the mirror has no zoom. Having Aperture take activation while the
+   mirror is open would have made pinching work, at the cost of the rule that the
+   overlay never steals focus. There is no optical zoom to fall back on either:
+   `AVCaptureDevice.videoZoomFactor` is `API_UNAVAILABLE(macos)`.
 
 ---
 
@@ -664,11 +712,15 @@ delayed ~90 ms so the two never double-expose.
 Aperture/
 ├── Aperture.xcodeproj/
 ├── Config/
-│   ├── Aperture.entitlements     # unsandboxed; Automation for the Music source
-│   └── Info.plist                # used by Scripts/build.sh only
+│   ├── Aperture.entitlements     # unsandboxed; Automation, calendar, camera
+│   ├── Info.plist                # used by Scripts/build.sh only
+│   └── InfoAdditions.plist       # keys Xcode's generated Info.plist cannot take
+├── Docs/screenshots/             # README images and demo GIF
 ├── Scripts/
 │   ├── build.sh                  # build without Xcode's build system
-│   └── test.sh                   # build + run tests without it either
+│   ├── test.sh                   # build + run tests without it either
+│   ├── screenshots.sh, .swift    # re-render Docs/screenshots
+│   └── demo.sh, .swift           # re-record the demo GIF
 ├── Aperture/
 │   ├── App/                      # lifecycle, menu bar, hot key, login item
 │   ├── Design/                   # design tokens
@@ -676,6 +728,7 @@ Aperture/
 │   ├── Overlay/                  # panels, geometry, manager, cursor tracking
 │   ├── Media/                    # MediaController + demo and Music providers
 │   ├── Calendars/                # EventKit service + pure filtering
+│   ├── Mirror/                   # camera pipeline, crop and photo rules
 │   ├── System/                   # audio, brightness, focus, HUD centre
 │   ├── Timers/                   # countdown timers
 │   ├── Notifications/            # app-owned notification feed
@@ -698,7 +751,7 @@ Aperture/
 | **Peek** | The wide strip: artwork + title + artist + progress + play/pause; or a timer countdown; or an imminent event | Automatic for ~3.4 s when an activity *starts or changes*, then retires itself |
 | **HUD — meter** | Volume or brightness: the name on one side of the housing, the level bar on the other, at exactly the housing's height | Automatic; dismisses itself after ~2 s |
 | **HUD — message** | A finished timer or an Aperture notification: icon, title and detail on a row below the housing | Automatic; dismisses itself after ~3.4 s |
-| **Hub** | Now Playing, Schedule, Controls — a vertical stack of panes, no tab bar | Click the slab, **swipe down on it with two fingers**, or press ⌘⇧Space |
+| **Hub** | Now Playing, Schedule, Mirror, Controls — a vertical stack of panes, no tab bar | Click the slab, **swipe down on it with two fingers**, or press ⌘⇧Space; ⌃⌥⌘M opens it on Mirror |
 
 The overlay is deliberately quiet: a live activity changes what the minimal slab
 *shows*, never how much room it takes. The wide strip is a peek with a deadline,
@@ -789,9 +842,15 @@ volume and brightness sliders' for the same reason, and returns to full strength
 under Increase Contrast, which exists precisely to undo that kind of choice. The close button
 sits beside the camera housing, in space no content can use anyway.
 
-Each pane carries its own height — 178 pt for Now Playing, 224 for Schedule, 228
-for Controls — instead of every pane paying for the tallest. The slab springs
-between them when you page, using the same motion that opens it.
+Each pane carries its own height — 178 pt for Now Playing, 224 for Schedule, 316
+for Mirror, 228 for Controls — instead of every pane paying for the tallest. The
+slab springs between them when you page, using the same motion that opens it.
+
+The Mirror pane is a live camera preview with a ring light and a shutter; whether
+it is mirrored is a setting. It is the one pane exempt from the ten-second
+auto-close, because someone looking into a mirror is not moving the pointer. Its
+camera runs only while the pane is on screen: paging away, closing the hub,
+pausing the overlay or the display going to sleep all switch it off.
 
 Two-finger swipes arrive through a global scroll monitor, which needs no
 Accessibility permission (scroll events are mouse events). The delta is
@@ -874,7 +933,7 @@ sandbox: both routes go through IOKit, which the sandbox does not reach.
 
 ## Tests
 
-78 tests, run with `xcodebuild test`, `./Scripts/test.sh`, or ⌘U:
+271 tests, run with `xcodebuild test`, `./Scripts/test.sh`, or ⌘U:
 
 * `ActivitySelectionTests` — the full priority lattice, policy gating, media
   linger, calendar imminence, timer eligibility
@@ -887,6 +946,10 @@ sandbox: both routes go through IOKit, which the sandbox does not reach.
 * `ScreenGeometryTests` — notched and non-notched layout, scaling behaviour
 * `FormattingTests` — clock, countdown and spoken-duration formatting, HUD
   descriptions, playhead interpolation
+* `MirrorTests` — when the camera may run, the idle-collapse exemption, the crop
+  that makes a saved photo match the preview (including a real image rendered
+  and checked mirrored), photo naming and collisions, the shortcut default,
+  mirror preferences
 
 Every major visual state also has a `#Preview` with realistic seeded data:
 idle (notched, plain, hovering, with activity), compact (media, timer, calendar,

@@ -128,6 +128,9 @@ enum Tokens {
         static let hub = CGSize(width: 364, height: 178)
         static let hubScheduleHeight: CGFloat = 224
         static let hubControlsHeight: CGFloat = 228
+        /// The tallest pane: the preview has to be big enough to use as a
+        /// mirror, with its controls beneath it.
+        static let hubMirrorHeight: CGFloat = 316
         /// Extra room the overlay window keeps around the widest state so
         /// shadows and spring overshoot are never clipped.
         static let windowPadding = CGSize(width: 90, height: 70)

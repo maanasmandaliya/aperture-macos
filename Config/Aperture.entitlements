@@ -27,5 +27,11 @@
 	     user still answers the prompt. -->
 	<key>com.apple.security.personal-information.calendars</key>
 	<true/>
+	<!-- The Mirror pane's camera. The hardened runtime requires this
+	     resource-access entitlement before macOS will prompt for, or grant,
+	     camera access — the same class of key as the calendar one above. It
+	     grants nothing on its own; the user still answers the prompt. -->
+	<key>com.apple.security.device.camera</key>
+	<true/>
 </dict>
 </plist>

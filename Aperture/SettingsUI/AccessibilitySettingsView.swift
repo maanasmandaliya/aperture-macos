@@ -38,13 +38,19 @@ struct AccessibilitySettingsView: View {
                 LabeledContent("Toggle hub") {
                     ShortcutRecorderView(
                         binding: $preferences.hotKey,
-                        registrationFailed: registrationFailed
+                        registrationFailed: registrationFailed(for: .toggleHub)
+                    )
+                }
+                LabeledContent("Open mirror") {
+                    ShortcutRecorderView(
+                        binding: $preferences.mirrorHotKey,
+                        registrationFailed: registrationFailed(for: .openMirror)
                     )
                 }
             } header: {
                 Text("Keyboard")
             } footer: {
-                Text("The shortcut works system-wide and needs no Accessibility permission. Inside the hub, Tab moves between controls, arrow keys adjust sliders, and Escape collapses it.")
+                Text("The shortcuts work system-wide and need no Accessibility permission. Open mirror also closes the mirror when it is already showing. Inside the hub, Tab moves between controls, arrow keys adjust sliders, and Escape collapses it.")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
@@ -66,8 +72,8 @@ struct AccessibilitySettingsView: View {
         .formStyle(.grouped)
     }
 
-    private var registrationFailed: Bool {
-        (NSApp.delegate as? AppDelegate)?.hotKeyRegistrationFailed ?? false
+    private func registrationFailed(for slot: HotKeySlot) -> Bool {
+        (NSApp.delegate as? AppDelegate)?.hotKeyRegistrationFailed(for: slot) ?? false
     }
 }
 

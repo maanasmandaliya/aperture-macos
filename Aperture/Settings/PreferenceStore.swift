@@ -118,6 +118,9 @@ enum PreferenceKey {
     static let reduceMotion = "accessibility.reduceMotion"
     static let increaseContrast = "accessibility.increaseContrast"
     static let hotKey = "accessibility.hotKey"
+    static let mirrorHotKey = "accessibility.mirrorHotKey"
+    static let mirrorFlipped = "mirror.flipped"
+    static let mirrorRingLight = "mirror.ringLight"
 
     static let mediaSource = "media.source"
 }

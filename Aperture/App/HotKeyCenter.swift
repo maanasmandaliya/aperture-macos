@@ -34,7 +34,12 @@ private final class HotKeyRegistry: @unchecked Sendable {
 }
 
 private let apertureHotKeySignature: OSType = 0x41505254 // 'APRT'
-private let toggleHotKeyID: UInt32 = 1
+/// Each global shortcut Aperture owns. The raw value is the Carbon hot key ID,
+/// which is how a key press is routed back to its action.
+enum HotKeySlot: UInt32, CaseIterable, Sendable {
+    case toggleHub = 1
+    case openMirror = 2
+}
 
 private func apertureHotKeyHandler(
     _ nextHandler: EventHandlerCallRef?,
@@ -64,24 +69,27 @@ final class HotKeyCenter {
 
     private let log = Logger(subsystem: ApertureInfo.bundleIdentifier, category: "HotKey")
     private var handlerRef: EventHandlerRef?
-    private var hotKeyRef: EventHotKeyRef?
-    private(set) var currentBinding: HotKeyBinding?
-    private(set) var lastRegistrationFailed = false
+    private var hotKeyRefs: [HotKeySlot: EventHotKeyRef] = [:]
+    private var failedSlots: Set<HotKeySlot> = []
 
     /// `true` once the Carbon event handler is installed.
     private var isHandlerInstalled = false
 
-    func register(_ binding: HotKeyBinding, action: @escaping @Sendable @MainActor () -> Void) {
-        unregister()
+    func register(
+        _ binding: HotKeyBinding,
+        for slot: HotKeySlot,
+        action: @escaping @Sendable @MainActor () -> Void
+    ) {
+        unregister(slot)
         guard binding.isValid else {
-            lastRegistrationFailed = true
+            failedSlots.insert(slot)
             return
         }
 
         installHandlerIfNeeded()
-        HotKeyRegistry.shared.set(action, for: toggleHotKeyID)
+        HotKeyRegistry.shared.set(action, for: slot.rawValue)
 
-        let id = EventHotKeyID(signature: apertureHotKeySignature, id: toggleHotKeyID)
+        let id = EventHotKeyID(signature: apertureHotKeySignature, id: slot.rawValue)
         var ref: EventHotKeyRef?
         let status = RegisterEventHotKey(
             binding.keyCode,
@@ -93,27 +101,29 @@ final class HotKeyCenter {
         )
 
         if status == noErr, let ref {
-            hotKeyRef = ref
-            currentBinding = binding
-            lastRegistrationFailed = false
+            hotKeyRefs[slot] = ref
+            failedSlots.remove(slot)
         } else {
-            // Most often means another app already owns the combination.
-            lastRegistrationFailed = true
-            log.notice("Hot key registration failed with status \(status)")
+            // Most often means another app — or Aperture's own other shortcut —
+            // already owns the combination.
+            failedSlots.insert(slot)
+            log.notice("Hot key registration for \(String(describing: slot), privacy: .public) failed with status \(status)")
         }
     }
 
-    func unregister() {
-        if let hotKeyRef {
-            UnregisterEventHotKey(hotKeyRef)
-            self.hotKeyRef = nil
+    func registrationFailed(for slot: HotKeySlot) -> Bool {
+        failedSlots.contains(slot)
+    }
+
+    func unregister(_ slot: HotKeySlot) {
+        if let ref = hotKeyRefs.removeValue(forKey: slot) {
+            UnregisterEventHotKey(ref)
         }
-        HotKeyRegistry.shared.set(nil, for: toggleHotKeyID)
-        currentBinding = nil
+        HotKeyRegistry.shared.set(nil, for: slot.rawValue)
     }
 
     func invalidate() {
-        unregister()
+        HotKeySlot.allCases.forEach(unregister)
         if let handlerRef {
             RemoveEventHandler(handlerRef)
             self.handlerRef = nil

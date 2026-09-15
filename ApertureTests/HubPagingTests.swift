@@ -10,20 +10,23 @@ import XCTest
 /// lock in the rules that gesture depends on.
 final class HubPagingTests: XCTestCase {
 
-    func testPanesAreOrderedNowPlayingScheduleControls() {
-        XCTAssertEqual(HubTab.allCases, [.nowPlaying, .schedule, .controls])
+    func testPanesAreOrderedNowPlayingScheduleMirrorControls() {
+        XCTAssertEqual(HubTab.allCases, [.nowPlaying, .schedule, .mirror, .controls])
         XCTAssertEqual(HubTab.nowPlaying.depth, 0)
         XCTAssertEqual(HubTab.schedule.depth, 1)
-        XCTAssertEqual(HubTab.controls.depth, 2)
+        XCTAssertEqual(HubTab.mirror.depth, 2)
+        XCTAssertEqual(HubTab.controls.depth, 3)
     }
 
     func testSwipingDownGoesDeeper() {
         XCTAssertEqual(HubTab.nowPlaying.deeper, .schedule)
-        XCTAssertEqual(HubTab.schedule.deeper, .controls)
+        XCTAssertEqual(HubTab.schedule.deeper, .mirror)
+        XCTAssertEqual(HubTab.mirror.deeper, .controls)
     }
 
     func testSwipingUpComesBack() {
-        XCTAssertEqual(HubTab.controls.shallower, .schedule)
+        XCTAssertEqual(HubTab.controls.shallower, .mirror)
+        XCTAssertEqual(HubTab.mirror.shallower, .schedule)
         XCTAssertEqual(HubTab.schedule.shallower, .nowPlaying)
     }
 

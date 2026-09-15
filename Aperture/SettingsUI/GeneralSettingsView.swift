@@ -140,6 +140,16 @@ struct GeneralSettingsView: View {
             } header: {
                 Text("Playback")
             }
+
+            Section {
+                Toggle("Mirror image", isOn: $preferences.mirrorFlipped)
+            } header: {
+                Text("Mirror")
+            } footer: {
+                Text("On, the Mirror pane shows you the way a real mirror does. Off, it shows you as the camera and other people see you, with text the right way round. Photos are saved the same way as the preview.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
         }
         .formStyle(.grouped)
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in

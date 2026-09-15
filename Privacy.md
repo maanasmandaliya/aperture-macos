@@ -41,6 +41,26 @@ choose Apple Music or the demo player as the source.
 * You can revoke access at any time in System Settings ▸ Privacy & Security ▸
   Calendars. Aperture handles revocation by showing an explanatory empty state.
 
+## Camera
+
+* The camera is used only by the **Mirror** pane in the hub. Access is asked for
+  **only when you press *Allow Camera*** there — never at launch, and never
+  because you paged past the pane.
+* The camera runs **only while the Mirror pane is on screen.** Paging to another
+  pane, closing the hub, pausing the overlay or the display going to sleep
+  switches it off, and the camera light goes out with it.
+* Frames are shown and discarded. Aperture does not record, analyse, store or
+  send them.
+* A **photo is saved only when you press the shutter**, to Pictures ▸ Aperture on
+  this Mac. It is never uploaded.
+* It uses the built-in camera, or a connected USB camera. Continuity Camera is
+  deliberately not used, so a nearby iPhone never takes over.
+* macOS runs its own camera software inside any app that uses the camera,
+  including its video-effect processing. Aperture turns hand-gesture Reactions
+  off by default; the other effects are yours to control in Control Center.
+* You can revoke access at any time in System Settings ▸ Privacy & Security ▸
+  Camera.
+
 ## Media
 
 * The default media source is a **built-in demo player**. It invents its own
@@ -66,21 +86,26 @@ attaches through the documented `NotificationSource` extension point.
 
 * **Audio** — Aperture reads and sets the default output device's volume and
   mute state through CoreAudio's public HAL properties. Nothing is recorded.
-* **Brightness** — Aperture reads brightness only from displays that publish it
-  through IOKit. It never captures screen contents.
+* **Brightness** — Aperture reads and sets display brightness through IOKit for
+  external displays, and through Apple's DisplayServices framework for the
+  built-in panel. It never captures screen contents.
 * **Focus** — if you grant permission, Aperture asks `INFocusStatusCenter`
   whether *a* Focus is active. It cannot see which Focus, and does not ask.
-* Aperture does not request Accessibility permission, Screen Recording
-  permission, Input Monitoring permission, or Full Disk Access, and does not
-  function as a keylogger of any kind. Its global shortcut uses Carbon's
-  `RegisterEventHotKey`, which reports only that shortcut being pressed.
+* Aperture asks for **Accessibility and Input Monitoring only if you turn on**
+  *Show only Aperture's volume and brightness readout*, so it can take those keys
+  before macOS does. Its event tap listens for system-defined media-key events
+  only — never ordinary keystrokes — so it does not function as a keylogger of
+  any kind. Aperture never requests Screen Recording, Microphone or Full Disk
+  Access. Its global shortcuts use Carbon's `RegisterEventHotKey`, which reports
+  only those shortcuts being pressed.
 
 ## What is stored on disk
 
 Your preferences, in the standard macOS user defaults domain
 `com.aperture.Aperture`. That covers the settings you see in the Settings
 window: toggles, overlay scale, accent, look-ahead window, the identifiers of
-the calendars you selected, and your keyboard shortcut. Nothing else is written.
+the calendars you selected, and your keyboard shortcuts. Nothing else is written,
+apart from photos you take in the Mirror pane, which go to Pictures ▸ Aperture.
 
 To remove everything Aperture has stored:
 

@@ -43,6 +43,7 @@ struct ExpandedHubView: View {
                 switch selectedTab {
                 case .nowPlaying: NowPlayingPane(accent: accent, scale: scale)
                 case .schedule: SchedulePane(accent: accent)
+                case .mirror: MirrorPane(accent: accent)
                 case .controls: ControlsPane(accent: accent, onClose: onClose)
                 }
             }

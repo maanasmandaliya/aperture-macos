@@ -26,6 +26,7 @@ final class AppEnvironment {
     let brightness: BrightnessController
     let focus: FocusStatusService
     let hud: HUDCenter
+    let mirror: MirrorCamera
     let overlay: OverlayManager
     let mediaKeys = MediaKeyTap()
 
@@ -67,6 +68,7 @@ final class AppEnvironment {
         brightness = BrightnessController()
         focus = FocusStatusService()
         hud = HUDCenter()
+        mirror = MirrorCamera()
         overlay = OverlayManager()
         lastAppliedMediaSource = preferences.mediaSource
         lastAppliedInterceptMediaKeys = preferences.interceptMediaKeys
@@ -104,10 +106,15 @@ final class AppEnvironment {
         // Refresh the system readings the hub displays the moment it opens, no
         // matter how it was opened (shortcut, menu, or a click on the pill).
         overlay.onPresentationChange = { [weak self] presentation in
+            guard let self else { return }
+            // The camera follows its pane: on while the mirror is showing, off
+            // the moment anything else is.
+            self.mirror.setShowsMirror(MirrorGeometry.showsMirror(presentation))
             guard presentation.isExpanded else { return }
-            self?.audio.refresh()
-            self?.brightness.refresh()
-            self?.focus.refresh()
+            self.mirror.prepare()
+            self.audio.refresh()
+            self.brightness.refresh()
+            self.focus.refresh()
         }
 
         overlay.start(
@@ -157,6 +164,7 @@ final class AppEnvironment {
         timers.invalidate()
         hud.invalidate()
         brightness.invalidate()
+        mirror.invalidate()
         mediaKeys.stop()
         audio.invalidate()
         focus.invalidate()
@@ -512,6 +520,17 @@ final class AppEnvironment {
         brightness.refresh()
         focus.refresh()
         overlay.toggleExpanded()
+    }
+
+    /// Opens the hub straight to the mirror, or closes it when the mirror is
+    /// already showing — one shortcut both summons and dismisses it.
+    func toggleMirror() {
+        guard !preferences.isPaused else { return }
+        switch overlay.presentation {
+        case .expanded(.mirror): overlay.collapse()
+        case .expanded: overlay.selectTab(.mirror)
+        default: overlay.expand(tab: .mirror)
+        }
     }
 
     func setPaused(_ paused: Bool) {

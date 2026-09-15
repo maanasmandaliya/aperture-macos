@@ -10,6 +10,7 @@ import Foundation
 enum HubTab: String, CaseIterable, Codable, Sendable, Identifiable {
     case nowPlaying
     case schedule
+    case mirror
     case controls
 
     var id: String { rawValue }
@@ -18,6 +19,7 @@ enum HubTab: String, CaseIterable, Codable, Sendable, Identifiable {
         switch self {
         case .nowPlaying: "Now Playing"
         case .schedule: "Schedule"
+        case .mirror: "Mirror"
         case .controls: "Controls"
         }
     }
@@ -26,6 +28,7 @@ enum HubTab: String, CaseIterable, Codable, Sendable, Identifiable {
         switch self {
         case .nowPlaying: "play.circle"
         case .schedule: "calendar"
+        case .mirror: "camera"
         case .controls: "slider.horizontal.3"
         }
     }

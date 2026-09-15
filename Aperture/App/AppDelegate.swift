@@ -40,7 +40,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         menuBar.onQuit = { NSApp.terminate(nil) }
         self.menuBar = menuBar
 
-        registerHotKey()
+        registerHotKeys()
         observeHotKeyChanges()
 
         // Sync the login item to whatever the user last chose, in case the
@@ -75,16 +75,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Hot key
 
-    private func registerHotKey() {
-        hotKeys.register(environment.preferences.hotKey) { [weak self] in
+    private func registerHotKeys() {
+        hotKeys.register(environment.preferences.hotKey, for: .toggleHub) { [weak self] in
             self?.environment.toggleHub()
         }
-        if hotKeys.lastRegistrationFailed {
-            log.notice("Toggle shortcut is unavailable — another app may already own it.")
+        hotKeys.register(environment.preferences.mirrorHotKey, for: .openMirror) { [weak self] in
+            self?.environment.toggleMirror()
+        }
+        for slot in HotKeySlot.allCases where hotKeys.registrationFailed(for: slot) {
+            log.notice("Shortcut \(String(describing: slot), privacy: .public) is unavailable — another app may already own it.")
         }
     }
 
-    /// Re-registers when the user edits the shortcut in Settings.
+    /// Re-registers when the user edits either shortcut in Settings.
     private func observeHotKeyChanges() {
         hotKeyObservation = Task { [weak self] in
             while !Task.isCancelled {
@@ -92,16 +95,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
                     withObservationTracking {
                         _ = self.environment.preferences.hotKey
+                        _ = self.environment.preferences.mirrorHotKey
                     } onChange: {
                         continuation.resume()
                     }
                 }
                 await Task.yield()
                 guard !Task.isCancelled else { return }
-                self.registerHotKey()
+                self.registerHotKeys()
             }
         }
     }
 
-    var hotKeyRegistrationFailed: Bool { hotKeys.lastRegistrationFailed }
+    func hotKeyRegistrationFailed(for slot: HotKeySlot) -> Bool {
+        hotKeys.registrationFailed(for: slot)
+    }
 }

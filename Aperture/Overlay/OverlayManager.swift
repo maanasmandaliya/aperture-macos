@@ -253,14 +253,22 @@ final class OverlayManager {
     private func restartIdleCollapseTimer() {
         idleCollapseTask?.cancel()
         idleCollapseTask = nil
-        guard autoCollapseEnabled, machine.presentation.isExpanded else { return }
+        guard autoCollapseEnabled, Self.autoCollapses(machine.presentation) else { return }
 
         idleCollapseTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(10))
             guard !Task.isCancelled, let self else { return }
-            guard self.autoCollapseEnabled, self.machine.presentation.isExpanded, !self.isHoveringPill else { return }
+            guard self.autoCollapseEnabled, Self.autoCollapses(self.machine.presentation), !self.isHoveringPill else { return }
             self.collapse()
         }
+    }
+
+    /// Whether the idle timer may close this presentation.
+    ///
+    /// Never the mirror: someone looking into it is not moving the cursor, and
+    /// closing it on them after ten seconds would make it unusable.
+    nonisolated static func autoCollapses(_ presentation: OverlayPresentation) -> Bool {
+        presentation.isExpanded && !MirrorGeometry.showsMirror(presentation)
     }
 
     // MARK: - Swipe

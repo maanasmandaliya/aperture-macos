@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Merged into the Info.plist Xcode generates. Only keys Xcode has no
+	     INFOPLIST_KEY_* build setting for belong here — an unrecognised
+	     INFOPLIST_KEY_ setting is silently dropped, which is how this key first
+	     went missing from Xcode builds. Scripts/build.sh uses Config/Info.plist
+	     instead; keep the two in sync. -->
+
+	<!-- Gesture-triggered Reactions off by default: in a mirror, raising your
+	     hands should not set off fireworks. This is about behaviour, not speed —
+	     measured, macOS's camera pipeline keeps running its own machine-learning
+	     work inside Aperture with gestures off. Only the default; Gestures can
+	     still be turned on in Control Center. -->
+	<key>NSCameraReactionEffectGesturesEnabledDefault</key>
+	<false/>
+</dict>
+</plist>

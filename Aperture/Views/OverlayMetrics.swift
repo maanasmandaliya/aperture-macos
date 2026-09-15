@@ -117,6 +117,7 @@ struct OverlayMetrics: Equatable, Sendable {
         switch tab {
         case .nowPlaying: height = Tokens.Size.hub.height
         case .schedule: height = Tokens.Size.hubScheduleHeight
+        case .mirror: height = Tokens.Size.hubMirrorHeight
         case .controls: height = Tokens.Size.hubControlsHeight
         }
         return CGSize(width: Tokens.Size.hub.width * scale, height: height * scale)

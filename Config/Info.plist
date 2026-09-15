@@ -22,6 +22,11 @@
 	<string>Aperture uses AppleScript to read and control playback in the Music app. This is optional and only used when you pick Apple Music as the media source.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>Aperture shows your next few events on the overlay. Events are read on this Mac and never leave it.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Aperture shows your camera as a mirror in the hub, only while the Mirror pane is open. Nothing is recorded or sent anywhere; a photo is saved only when you press the shutter.</string>
+	<!-- Gesture-triggered Reactions off by default: in a mirror, raising your hands should not set off fireworks. This is about behaviour, not speed — measured, macOS's camera pipeline keeps running its own machine-learning work inside Aperture with gestures off. Only the default; Gestures can still be turned on in Control Center. -->
+	<key>NSCameraReactionEffectGesturesEnabledDefault</key>
+	<false/>
 	<key>NSFocusStatusUsageDescription</key>
 	<string>Aperture shows whether a Focus is active in the Controls tab.</string>
 	<key>NSHighResolutionCapable</key><true/>
