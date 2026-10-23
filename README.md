@@ -933,7 +933,7 @@ sandbox: both routes go through IOKit, which the sandbox does not reach.
 
 ## Tests
 
-271 tests, run with `xcodebuild test`, `./Scripts/test.sh`, or ⌘U:
+272 tests, run with `xcodebuild test`, `./Scripts/test.sh`, or ⌘U:
 
 * `ActivitySelectionTests` — the full priority lattice, policy gating, media
   linger, calendar imminence, timer eligibility
@@ -946,6 +946,8 @@ sandbox: both routes go through IOKit, which the sandbox does not reach.
 * `ScreenGeometryTests` — notched and non-notched layout, scaling behaviour
 * `FormattingTests` — clock, countdown and spoken-duration formatting, HUD
   descriptions, playhead interpolation
+* `AudioListenerTests` — a CoreAudio listener called from a background thread
+  reaches the main actor instead of trapping
 * `MirrorTests` — when the camera may run, the idle-collapse exemption, the crop
   that makes a saved photo match the preview (including a real image rendered
   and checked mirrored), photo naming and collisions, the shortcut default,

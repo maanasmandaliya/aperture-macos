@@ -60,16 +60,12 @@ final class AudioOutputController {
     private var listeners: [AudioObjectPropertyAddress] = []
     private var isSettingLocally = false
 
-    /// CoreAudio delivers listener callbacks on its own dispatch queue; hopping
-    /// to the main actor here keeps every observable mutation on one actor.
-    /// Stored (not computed) because removal requires the identical block.
+    /// Stored, not computed: removal requires the identical block.
     @ObservationIgnored
     private var listenerBlock: AudioObjectPropertyListenerBlock = { _, _ in }
 
     init() {
-        listenerBlock = { [weak self] _, _ in
-            Task { @MainActor in self?.handleExternalChange() }
-        }
+        listenerBlock = Self.makeListener { [weak self] in self?.handleExternalChange() }
         attachToDefaultDevice()
         installDefaultDeviceListener()
     }
@@ -262,6 +258,27 @@ final class AudioOutputController {
         }
     }
 
+    /// Builds a block for CoreAudio to call when a property changes.
+    ///
+    /// `nonisolated` is the whole point, and this is the most load-bearing
+    /// detail in the file. CoreAudio invokes these blocks on its own thread, but
+    /// a closure written inside a `@MainActor` type is *inferred* to be
+    /// main-actor-isolated, so Swift inserts an executor check on entry. That
+    /// check does not fail softly: `dispatch_assert_queue` traps with
+    /// `EXC_BREAKPOINT` and takes the process down. Measured from the crash this
+    /// fixes — thread `com.apple.root.default-qos`, inside the default-device
+    /// listener, 2 h 11 m after launch, at the moment the default output device
+    /// changed. Built out here, outside any actor, no check is inserted and the
+    /// hop below is the only thing that reaches the main actor.
+    ///
+    /// The hop also means CoreAudio's thread is released immediately rather
+    /// than waiting on the main actor, which is what the HAL wants.
+    nonisolated static func makeListener(
+        _ work: @escaping @Sendable @MainActor () -> Void
+    ) -> AudioObjectPropertyListenerBlock {
+        { _, _ in Task { @MainActor in work() } }
+    }
+
     private func installDefaultDeviceListener() {
         var address = AudioObjectPropertyAddress(
             mSelector: kAudioHardwarePropertyDefaultOutputDevice,
@@ -269,10 +286,9 @@ final class AudioOutputController {
             mElement: kAudioObjectPropertyElementMain
         )
         AudioObjectAddPropertyListenerBlock(
-            AudioObjectID(kAudioObjectSystemObject), &address, nil
-        ) { [weak self] _, _ in
-            Task { @MainActor in self?.attachToDefaultDevice() }
-        }
+            AudioObjectID(kAudioObjectSystemObject), &address, nil,
+            Self.makeListener { [weak self] in self?.attachToDefaultDevice() }
+        )
     }
 
     private func removeListeners() {
